@@ -72,7 +72,7 @@ app.get("/users", async (req, res) => {
 ============================ */
 
 // Criar carga
-app.post("/loads", async (req, res) => {
+app.post("/cargas", async (req, res) => {
   try {
     const {
       id,
@@ -119,10 +119,10 @@ app.post("/loads", async (req, res) => {
 });
 
 // Listar cargas
-app.get("/loads", async (req, res) => {
+app.get("/cargas", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM loads ORDER BY created_at DESC"
+      "SELECT * FROM cargas ORDER BY created_at DESC"
     );
 
     res.json(result.rows);
