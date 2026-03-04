@@ -2,189 +2,90 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Cargora</title>
+<title>Cargora - Cargas disponíveis</title>
+
 <style>
-body {
-    margin:0;
-    font-family: Arial, sans-serif;
-    background:#f3f6fa;
+body{
+font-family: Arial;
+background:#f4f6f8;
+padding:40px;
 }
 
-header {
-    background:#0f172a;
-    color:white;
-    padding:15px 30px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+h1{
+color:#333;
 }
 
-.container {
-    max-width:900px;
-    margin:40px auto;
-    padding:20px;
+.card{
+background:white;
+padding:20px;
+margin-bottom:15px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
-.card {
-    background:white;
-    padding:20px;
-    margin-bottom:20px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+.valor{
+font-size:20px;
+font-weight:bold;
+color:#0a7cff;
 }
 
-input, button {
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    border-radius:8px;
-    border:1px solid #ddd;
-    font-size:14px;
+.rota{
+font-size:18px;
+margin-bottom:10px;
 }
 
-button {
-    background:#2563eb;
-    color:white;
-    border:none;
-    cursor:pointer;
-}
-
-button:hover {
-    background:#1e40af;
-}
-
-.load-card {
-    padding:15px;
-    border-radius:10px;
-    background:#f9fafb;
-    margin-top:10px;
-    border:1px solid #e5e7eb;
-}
-
-.delete-btn {
-    background:#dc2626;
-    margin-top:10px;
+.status{
+color:green;
+font-weight:bold;
 }
 </style>
+
 </head>
+
 <body>
 
-<header>
-    <div><strong>Cargora</strong> | Marketplace MVP</div>
-    <div id="userInfo"></div>
-</header>
+<h1>🚛 Cargas disponíveis</h1>
 
-<div class="container">
-
-<div class="card" id="loginCard">
-    <h2>Criar Conta</h2>
-    <input id="name" placeholder="Nome">
-    <input id="email" placeholder="Email">
-    <input id="phone" placeholder="Telefone">
-    <button onclick="createUser()">Criar Conta</button>
-</div>
-
-<div class="card" id="loadCard" style="display:none;">
-    <h2>Publicar Carga</h2>
-    <input id="originCity" placeholder="Cidade Origem">
-    <input id="originState" placeholder="Estado Origem">
-    <input id="destinationCity" placeholder="Cidade Destino">
-    <input id="destinationState" placeholder="Estado Destino">
-    <input id="vehicleType" placeholder="Tipo Veículo">
-    <input id="weightKg" placeholder="Peso (kg)">
-    <input id="price" placeholder="Preço">
-    <input id="loadDate" placeholder="Data (YYYY-MM-DD)">
-    <button onclick="createLoad()">Publicar Carga</button>
-</div>
-
-<div class="card">
-    <h2>Cargas Disponíveis</h2>
-    <button onclick="loadLoads()">Atualizar</button>
-    <div id="loads"></div>
-</div>
-
-</div>
+<div id="cargas"></div>
 
 <script>
-let currentUser = null;
 
-async function createUser() {
-    const res = await fetch("http://localhost:3000/users", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-            name: name.value,
-            email: email.value,
-            phone: phone.value
-        })
-    });
+async function carregarCargas(){
 
-    const data = await res.json();
+const resposta = await fetch("https://cargora-backend.onrender.com/cargas");
+const dados = await resposta.json();
 
-    if (!res.ok) {
-        alert(data.error);
-        return;
-    }
+const container = document.getElementById("cargas");
 
-    currentUser = data;
-    userInfo.innerHTML = "Logado como: <strong>" + data.name + "</strong>";
-    loginCard.style.display = "none";
-    loadCard.style.display = "block";
-}
+dados.forEach(carga => {
 
-async function createLoad() {
-    const res = await fetch("http://localhost:3000/loads", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-            createdByUserId: currentUser.id,
-            originCity: originCity.value,
-            originState: originState.value,
-            destinationCity: destinationCity.value,
-            destinationState: destinationState.value,
-            vehicleType: vehicleType.value,
-            weightKg: Number(weightKg.value),
-            price: Number(price.value),
-            loadDate: loadDate.value
-        })
-    });
+const div = document.createElement("div");
+div.className = "card";
 
-    const data = await res.json();
+div.innerHTML = `
+<div class="rota">
+${carga.origem_estado} - ${carga.origem_cidade}
+→
+${carga.destino_estado} - ${carga.destino_cidade}
+</div>
 
-    if (!res.ok) {
-        alert(data.error);
-        return;
-    }
+<div class="valor">
+R$ ${carga.valor}
+</div>
 
-    alert("Carga publicada!");
-    loadLoads();
-}
+<div class="status">
+Status: ${carga.status}
+</div>
+`;
 
-async function loadLoads() {
-    const res = await fetch("http://localhost:3000/loads");
-    const data = await res.json();
+container.appendChild(div);
 
-    loads.innerHTML = "";
-
-    data.forEach(l => {
-        loads.innerHTML += `
-        <div class="load-card">
-            <strong>${l.originCity}/${l.originState}</strong> →
-            <strong>${l.destinationCity}/${l.destinationState}</strong><br>
-            Veículo: ${l.vehicleType}<br>
-            Peso: ${l.weightKg} kg<br>
-            Preço: R$ ${l.price}
-            <button class="delete-btn" onclick="deleteLoad('${l.id}')">Excluir</button>
-        </div>`;
-    });
-}
-
-async function deleteLoad(id) {
-    await fetch(`http://localhost:3000/loads/${id}`, {
-  method: "DELETE"
 });
-    loadLoads();
+
 }
+
+carregarCargas();
+
 </script>
 
 </body>
