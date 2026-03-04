@@ -8,11 +8,10 @@ app.use(cors());
 app.use(express.json());
 
 const pool = new Pool({
-  host: "localhost",
-  port: 5432,
-  user: "cargora",
-  password: "123456",
-  database: "cargora",
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // Teste de conexão
